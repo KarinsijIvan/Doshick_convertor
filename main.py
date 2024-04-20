@@ -1,3 +1,4 @@
+import config
 import telebot
 import requests
 from bs4 import BeautifulSoup
@@ -5,25 +6,32 @@ from datetime import datetime
 from fake_useragent import UserAgent
 from pycbrf.toolbox import ExchangeRates
 
-bot = telebot.TeleBot("здесь могла быть выша реклама")
+bot = telebot.TeleBot(config.token)
 
-red_doshick_70g = "https://yarcheplus.ru/product/lapsha-4416"
-red_doshick_90g = "https://yarcheplus.ru/product/lapsha-5324"
+red_doshick_70g = ["https://yarcheplus.ru/product/lapsha-4416", "красный дошик 70г"]
+red_doshick_90g = ["https://yarcheplus.ru/product/lapsha-5324", "красный дошик 90г"]
 
-green_doshick_70g = "https://yarcheplus.ru/product/lapsha-4033"
-green_doshick_90g = "https://yarcheplus.ru/product/lapsha-4116"
+green_doshick_70g = ["https://yarcheplus.ru/product/lapsha-4033", "зелёный дошик 70г"]
+green_doshick_90g = ["https://yarcheplus.ru/product/lapsha-4116", "зелёный дошик 90г"]
 
-chicken_rolton_60g = "https://yarcheplus.ru/product/vermishel-4174"
-chicken_rolton_85g = "https://yarcheplus.ru/product/lapsha-6707"
-chicken_rolton_90g = "https://yarcheplus.ru/product/lapsha-4404"
+chicken_rolton_60g = ["https://yarcheplus.ru/product/vermishel-4174", "куриный ролтон 60г"]
+chicken_rolton_85g = ["https://yarcheplus.ru/product/lapsha-6707", "куриный ролтон 85г"]
+chicken_rolton_90g = ["https://yarcheplus.ru/product/lapsha-4404", "куриный ролтон 90г"]
 
-beef_rolton_60g = "https://yarcheplus.ru/product/vermishel-3581"
-beef_rolton_85g = "https://yarcheplus.ru/product/vermishel-6734"
-beef_rolton_90g = "https://yarcheplus.ru/product/lapsha-3940"
+beef_rolton_60g = ["https://yarcheplus.ru/product/vermishel-3581", "говяжий ролтон 60г"]
+beef_rolton_85g = ["https://yarcheplus.ru/product/vermishel-6734", "говяжий ролтон 85г"]
+beef_rolton_90g = ["https://yarcheplus.ru/product/lapsha-3940", "говяжий ролтон 90г"]
 
-mushroom_rolton_60g = "https://yarcheplus.ru/product/vermishel-3779"
+mushroom_rolton_60g = ["https://yarcheplus.ru/product/vermishel-3779", "грибной ролтон 60г"]
 
-bacon_and_cheese_rolton_60g = "https://yarcheplus.ru/product/vermishel-5300"
+bacon_and_cheese_rolton_60g = ["https://yarcheplus.ru/product/vermishel-5300", "ролтон с беконом и сыром 60г"]
+
+link_list = [red_doshick_70g, red_doshick_90g,
+             green_doshick_70g, green_doshick_90g,
+             chicken_rolton_60g, chicken_rolton_85g, chicken_rolton_90g,
+             beef_rolton_60g, beef_rolton_85g, beef_rolton_90g,
+             mushroom_rolton_60g,
+             bacon_and_cheese_rolton_60g]
 
 
 @bot.message_handler(commands=["convert"])
@@ -50,15 +58,17 @@ def covert_miney_to_doshick(message):
     date = datetime.now().date()
     money, currency = message.text.split()
     money = float(money)
-    sell = get_sell(red_doshick_70g)
     rates = ExchangeRates(date)
+    bot.send_message(message.chat.id, f"за {message.text} можно купить")
+    for i in link_list:
+        sell = get_sell(i[0])
 
-    if currency != "RUB":
-        quantity_doshick = int(float(rates[currency].rate) * money / sell)
-    else:
-        quantity_doshick = int(money / sell)
+        if currency != "RUB":
+            quantity_doshick = int(float(rates[currency].rate) * money / sell)
+        else:
+            quantity_doshick = int(money / sell)
 
-    bot.send_message(message.chat.id, f"за {message.text} можно купить {quantity_doshick} доширака")
+        bot.send_message(message.chat.id, f"{quantity_doshick} {i[1]}")
     return quantity_doshick
 
 
