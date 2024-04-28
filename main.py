@@ -59,6 +59,8 @@ def covert_miney_to_doshick(message):
     money, currency = message.text.split()
     money = float(money)
     rates = ExchangeRates(date)
+    sells_and_quantity = {}
+
     bot.send_message(message.chat.id, f"за {message.text} можно купить")
     for i in link_list:
         sell = get_sell(i[0])
@@ -68,7 +70,14 @@ def covert_miney_to_doshick(message):
         else:
             quantity_doshick = int(money / sell)
 
-        bot.send_message(message.chat.id, f"{quantity_doshick} {i[1]}")
+        change = round(money - quantity_doshick*sell, ndigits=2)
+        sells_and_quantity.update({i[1]: [quantity_doshick, sell]})
+
+        bot.send_message(message.chat.id, f"{quantity_doshick} {i[1]} за {sell}, {change} останется")
+
+    benefit = max_benefit(sells_and_quantity)
+    bot.send_message(message.chat.id, f"Выгоднее всего купить {benefit[0]}, т.к. Вы получите {benefit[1]}г")
+
     return quantity_doshick
 
 
@@ -90,6 +99,19 @@ def sell_to_float(sell):
     sell = float(".".join(sell))
 
     return sell
+
+
+def max_benefit(lst):
+    all_quantity = {}
+    for i in lst:
+        weight = int(i.split()[-1].rstrip("г"))
+        quantity = weight * lst[i][0]
+        all_quantity.update({quantity: i})
+
+    max_quantity = [all_quantity[max(list(all_quantity))], max(list(all_quantity))]
+
+    print(max_quantity)
+    return max_quantity
 
 
 bot.polling(none_stop=True)
