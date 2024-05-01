@@ -15,24 +15,24 @@ red_doshick_90g = ["https://yarcheplus.ru/product/lapsha-5324", "красный 
 green_doshick_70g = ["https://yarcheplus.ru/product/lapsha-4033", "зелёный дошик 70г"]
 green_doshick_90g = ["https://yarcheplus.ru/product/lapsha-4116", "зелёный дошик 90г"]
 
-chicken_rolton_60g = ["https://yarcheplus.ru/product/vermishel-4174", "куриный ролтон 60г"]
-chicken_rolton_85g = ["https://yarcheplus.ru/product/lapsha-6707", "куриный ролтон 85г"]
-chicken_rolton_90g = ["https://yarcheplus.ru/product/lapsha-4404", "куриный ролтон 90г"]
+chicken_rollton_60g = ["https://yarcheplus.ru/product/vermishel-4174", "куриный роллтон 60г"]
+chicken_rollton_85g = ["https://yarcheplus.ru/product/lapsha-6707", "куриный роллтон 85г"]
+chicken_rollton_90g = ["https://yarcheplus.ru/product/lapsha-4404", "куриный роллтон 90г"]
 
-beef_rolton_60g = ["https://yarcheplus.ru/product/vermishel-3581", "говяжий ролтон 60г"]
-beef_rolton_85g = ["https://yarcheplus.ru/product/vermishel-6734", "говяжий ролтон 85г"]
-beef_rolton_90g = ["https://yarcheplus.ru/product/lapsha-3940", "говяжий ролтон 90г"]
+beef_rollton_60g = ["https://yarcheplus.ru/product/vermishel-3581", "говяжий роллтон 60г"]
+beef_rollton_85g = ["https://yarcheplus.ru/product/vermishel-6734", "говяжий роллтон 85г"]
+beef_rollton_90g = ["https://yarcheplus.ru/product/lapsha-3940", "говяжий роллтон 90г"]
 
-mushroom_rolton_60g = ["https://yarcheplus.ru/product/vermishel-3779", "грибной ролтон 60г"]
+mushroom_rollton_60g = ["https://yarcheplus.ru/product/vermishel-3779", "грибной роллтон 60г"]
 
-bacon_and_cheese_rolton_60g = ["https://yarcheplus.ru/product/vermishel-5300", "ролтон с беконом и сыром 60г"]
+bacon_and_cheese_rollton_60g = ["https://yarcheplus.ru/product/vermishel-5300", "роллтон с беконом и сыром 60г"]
 
 link_list = [red_doshick_70g, red_doshick_90g,
              green_doshick_70g, green_doshick_90g,
-             chicken_rolton_60g, chicken_rolton_85g, chicken_rolton_90g,
-             beef_rolton_60g, beef_rolton_85g, beef_rolton_90g,
-             mushroom_rolton_60g,
-             bacon_and_cheese_rolton_60g]
+             chicken_rollton_60g, chicken_rollton_85g, chicken_rollton_90g,
+             beef_rollton_60g, beef_rollton_85g, beef_rollton_90g,
+             mushroom_rollton_60g,
+             bacon_and_cheese_rollton_60g]
 # endregion
 
 ind = 0
@@ -75,10 +75,10 @@ def callback(call):
             send_doshick_info(call.message)
         else:
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.id, text=f"Сколько у вас {call.data}?")
-            bot.register_next_step_handler(call.message, covert_miney_to_doshick, call.data)
+            bot.register_next_step_handler(call.message, covert_miney_to_lapsa, call.data)
 
 
-def covert_miney_to_doshick(message, currency):
+def covert_miney_to_lapsa(message, currency):
     date = datetime.now().date()
     money = float(message.text)
     rates = ExchangeRates(date)
@@ -91,22 +91,22 @@ def covert_miney_to_doshick(message, currency):
         estimations.update({i[1]: estimation})
 
         if currency != "RUB":
-            quantity_doshick = int(float(rates[currency].rate) * money / sell)
+            quantity = int(float(rates[currency].rate) * money / sell)
             difference = float(rates[currency].rate)
-            change = round(money - quantity_doshick * (sell/difference), ndigits=2)
-            output.append(f"{quantity_doshick} {i[1]} за {round(sell/difference, ndigits=2)} {currency}\n"
-                          f"    Обойдётся в {round(quantity_doshick*(sell/difference), ndigits=2)} {currency}\n"
+            change = round(money - quantity * (sell/difference), ndigits=2)
+            output.append(f"{quantity} {i[1]} за {round(sell/difference, ndigits=2)} {currency}\n"
+                          f"    Обойдётся в {round(quantity*(sell/difference), ndigits=2)} {currency}\n"
                           f"    Оценка: {estimation} звёзд\n"
                           f"    Cдача: {round(change, ndigits=2)} {currency}")
         else:
-            quantity_doshick = int(money / sell)
-            change = round(money - quantity_doshick * sell, ndigits=2)
-            output.append(f"{quantity_doshick} {i[1]} за {sell} RUB\n"
-                          f"    Обойдётся в {round(quantity_doshick*sell, ndigits=2)} RUB\n"
+            quantity = int(money / sell)
+            change = round(money - quantity * sell, ndigits=2)
+            output.append(f"{quantity} {i[1]} за {sell} RUB\n"
+                          f"    Обойдётся в {round(quantity*sell, ndigits=2)} RUB\n"
                           f"    Оценка: {estimation} звёзд\n"
                           f"    Cдача: {round(change, ndigits=2)} RUB")
 
-        sells_and_quantity.update({i[1]: [quantity_doshick, sell]})
+        sells_and_quantity.update({i[1]: [quantity, sell]})
         benefit = max_benefit(sells_and_quantity)
         max_estimations = max_estimation(estimations)
 
@@ -129,7 +129,7 @@ def send_message(message, output, benefit, max_estimations, money, currency):
         if end_str:
             output_matrix.append(end_str)
 
-    bot.send_message(message.chat.id, f"За {money} {currency} выгоднее всего купить {benefit[0]}, т.к. Вы получите {benefit[1]}г")
+    bot.send_message(message.chat.id, f"За {money} {currency} выгоднее всего купить {', '.join(benefit[0])}, т.к. Вы получите {benefit[1]}г")
     bot.send_message(message.chat.id, f"Самая высокая оценка, а именно {max_estimations[1]} у:"
                                       f"\n{', '.join(max_estimations[0])}")
 
@@ -184,7 +184,10 @@ def max_benefit(lst):
     for i in lst:
         weight = int(i.split()[-1].rstrip("г"))
         quantity = weight * lst[i][0]
-        all_quantity.update({quantity: i})
+        if not(quantity in list(all_quantity.keys())):
+            all_quantity.update({quantity: [i]})
+        else:
+            all_quantity[quantity].append(i)
 
     max_quantity = [all_quantity[max(list(all_quantity))], max(list(all_quantity))]
 
