@@ -106,8 +106,6 @@ def get_currency(message):
 def callback(call):
     global ind, link_list
     if call.message:
-        if call.data in ["bread", "milk"]:
-            return
 
         if call.data == "laspa":
             link_list = [red_doshick_70g, red_doshick_90g,
@@ -144,36 +142,49 @@ def callback(call):
 def covert_miney_to_lapsa(message, currency):
     global estimations, sells_and_quantity, link_list
     date = datetime.now().date()
-    money = float(message.text)
-    rates = ExchangeRates(date)
-    output = []
 
-    for i in link_list:
-        sell, estimation = get_data(i[0])
-        estimations.update({i[1]: estimation})
+    try:
+        money = float(message.text)
 
-        if currency != "RUB":
-            quantity = int(float(rates[currency].rate) * money / sell)
-            difference = float(rates[currency].rate)
-            change = round(money - quantity * (sell/difference), ndigits=2)
-            output.append(f"{quantity} {i[1]} за {round(sell/difference, ndigits=2)} {currency}\n"
-                          f"    Обойдётся в {round(quantity*(sell/difference), ndigits=2)} {currency}\n"
-                          f"    Оценка: {estimation} звёзд\n"
-                          f"    Cдача: {round(change, ndigits=2)} {currency}")
-        else:
-            quantity = int(money / sell)
-            change = round(money - quantity * sell, ndigits=2)
-            output.append(f"{quantity} {i[1]} за {sell} RUB\n"
-                          f"    Обойдётся в {round(quantity*sell, ndigits=2)} RUB\n"
-                          f"    Оценка: {estimation} звёзд\n"
-                          f"    Cдача: {round(change, ndigits=2)} RUB")
+        rates = ExchangeRates(date)
+        output = []
 
-        sells_and_quantity.update({i[1]: [quantity, sell]})
-        benefit = max_benefit(sells_and_quantity)
-        max_estimations = max_estimation(estimations)
+        for i in link_list:
+            sell, estimation = get_data(i[0])
+            estimations.update({i[1]: estimation})
 
-    send_message(message, output, benefit, max_estimations, money, currency)
+            if currency != "RUB":
+                if sell == 0.0:
+                    output.append(f"{i[1]} Нет в наличии\n"
+                                  f"    Оценка: {estimation} звёзд")
+                else:
+                    quantity = int(float(rates[currency].rate) * money / sell)
+                    difference = float(rates[currency].rate)
+                    change = round(money - quantity * (sell/difference), ndigits=2)
+                    output.append(f"{quantity} {i[1]} за {round(sell/difference, ndigits=2)} {currency}\n"
+                                  f"    Обойдётся в {round(quantity*(sell/difference), ndigits=2)} {currency}\n"
+                                  f"    Оценка: {estimation} звёзд\n"
+                                  f"    Cдача: {round(change, ndigits=2)} {currency}")
+            else:
+                if sell == 0.0:
+                    output.append(f"{i[1]} Нет в наличии\n"
+                                  f"    Оценка: {estimation} звёзд")
+                else:
+                    quantity = int(money / sell)
+                    change = round(money - quantity * sell, ndigits=2)
+                    output.append(f"{quantity} {i[1]} за {sell} RUB\n"
+                                  f"    Обойдётся в {round(quantity*sell, ndigits=2)} RUB\n"
+                                  f"    Оценка: {estimation} звёзд\n"
+                                  f"    Cдача: {round(change, ndigits=2)} RUB")
 
+            sells_and_quantity.update({i[1]: [quantity, sell]})
+            benefit = max_benefit(sells_and_quantity)
+            max_estimations = max_estimation(estimations)
+
+        send_message(message, output, benefit, max_estimations, money, currency)
+
+    except ValueError:
+        bot.send_message(message.chat.id, "Данные введены не коректно, напишите /start для повторной попытки")
 
 def send_message(message, output, benefit, max_estimations, money, currency):
     global output_matrix, ind
